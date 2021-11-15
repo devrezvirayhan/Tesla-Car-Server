@@ -5,7 +5,7 @@ require('dotenv').config()
 const { MongoClient } = require('mongodb');
 const ObjectId = require("mongodb").ObjectId
 
-const port = process.env.PORT || 7000;
+const port = process.env.PORT || 5000;
 
 app.use(cors());
 app.use(express.json())
@@ -19,14 +19,38 @@ async function run() {
     await client.connect();
     // console.log('Database Connected SucessFully')
 
-
-
     const database = client.db('tasle_car');
-    const ourcarCollection = database.collection('collection')
-    const OrderCollection = database.collection('orders')
+    const ourcarCollection = database.collection('collection');
+    const OrderCollection = database.collection('orders');
+    const userCollection = database.collection('user');
+    const OurAllCollection = database.collection('Product');
 
-    // APPOINTMENTS
 
+    // const ReviCollection = database.collection('review')
+
+
+    app.post('/addallProduct', async (req, res) => {
+      const result = await OurAllCollection.insertOne(req.body)
+      res.send(result)
+    });
+
+    // GET ALL PRODUCTS
+    app.get('/addallProduct', async (req, res) => {
+      const result = await OurAllCollection.find({}).toArray();
+      res.send(result)
+      console.log(result)
+    })
+    app.get('/singleallProduct/:id', async (req, res) => {
+      const result = await OurAllCollection
+        .find({ _id: ObjectId(req.params.id) })
+        .toArray();
+      res.send(result[0]);
+    })
+
+    app.post("/confirallmOrder", async (req, res) => {
+      const result = await OrderCollection.insertOne(req.body);
+      res.send(result);
+    });
 
     //MAKE ADMIN IN ADMIN TO ADMIN
     app.post('/addProducts', async (req, res) => {
@@ -43,26 +67,72 @@ async function run() {
     })
 
     // SUNGLE PRODUCT ID DATA BASE
-    app.get('/singleProduct/:id', async(req, res)=>{
-      const result = await ourcarCollection.find({_id:ObjectId(req.params.id)}).toArray();
-      res.send(result[0])
+    app.get('/singleProduct/:id', async (req, res) => {
+      const result = await ourcarCollection
+        .find({ _id: ObjectId(req.params.id) })
+        .toArray();
+      res.send(result[0]);
     })
 
-      // CONFROM ORDER NOT & ORDER NOW
+    //  GET SINGLE PRODUCTS IN DATABASE 
 
-      app.post("/confromOrder", async (req, res) => {
-        const result = await OrderCollection.insertOne(req.body);
-        res.send(result);
+    // CONFRIM ORDER ID DATABASE MONGODB
+    app.post("/confirmOrder", async (req, res) => {
+      const result = await OrderCollection.insertOne(req.body);
+      res.send(result);
+    });
+    // MY CONFROM ORDER 
+    app.get("/myOrders/:email", async (req, res) => {
+      const result = await OrderCollection
+        .find({ email: req.params.email })
+        .toArray();
+      res.send(result);
+    });
+    // DELETE ORDER 
+    app.delete("/deleteOrder/:id", async (req, res) => {
+      const result = await OrderCollection.deleteOne({
+        _id: ObjectId(req.params.id),
       });
+      res.send(result);
+    });
+    app.post('/users', async (req, res) => {
+      const user = req.body
+      const result = await userCollection.insertOne(user);
+      console.log(result)
+      res.json(result)
+    })
 
+    app.put('/users', async (req, res) => {
+      const user = req.body;
+      const filter = { email: user.email };
+      const optins = { upsert: true };
+      const updateDoc = { $set: user }
+      const result = userCollection.updateOne(filter, updateDoc, optins);
+      res.json(result)
+    })
 
-      // MY ORDERS IN WEBSITE HIT THE DATABASE
+    app.put('/users/admin', async(req, res)=>{
+      const user = req.body;
+      console.log('put', user);
+      const filter = {email: user.email};
+      const updateDoc = { $set: {role:'admin'}};
+      const result = await userCollection.updateOne(filter, updateDoc)
+      res.json(result)
+    })
 
-      app.get('/myOrders/:email', async(req, res)=>{
-        const result = await OrderCollection.find({email: req.params.email}).toArray();
-        console.log(result)
-        res.send(result)
-      })
+// ADMIN ADMIN EMAIL EMAIL DOCTOR 
+app.get('/users/email', async(req, res)=>{
+  const email = req.params.email;
+  const query = {email: email};
+  const user = await userCollection.find(query);
+  let isAdmin = false;
+  if(user?.role === 'admin'){
+    isAdmin = true;
+  }
+  res.json({admin : isAdmin})
+
+})
+    
 
 
   }
