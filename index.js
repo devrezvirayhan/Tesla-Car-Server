@@ -24,9 +24,7 @@ async function run() {
     const OrderCollection = database.collection('orders');
     const userCollection = database.collection('user');
     const OurAllCollection = database.collection('Product');
-
-
-    // const ReviCollection = database.collection('review')
+    const ReviCollection = database.collection('review')
 
 
     app.post('/addallProduct', async (req, res) => {
@@ -132,6 +130,38 @@ app.get('/users/email', async(req, res)=>{
   res.json({admin : isAdmin})
 
 })
+
+
+
+
+
+// GET API
+app.get('/names', async(req, res)=>{
+  const cursor = ReviCollection.find({});
+  const names = await cursor.toArray();
+  res.send(names)
+})
+
+
+// SINGLE GET API SERVICE
+app.get('/names/:id', async(req,res)=>{
+const id = req.params.id;
+const query = {_id:ObjectId(id)}
+const name = await ReviCollection.findOne(query)
+res.json(name);
+})
+
+
+// POST API
+app.post('/names', async(req,res)=>{
+  const name = req.body;
+console.log('Hit the post api', name);
+  const result = await ReviCollection.insertOne(name)
+  console.log(result)
+  res.json(result)
+})
+
+
     
 
 
