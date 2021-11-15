@@ -25,6 +25,7 @@ async function run() {
     const userCollection = database.collection('user');
     const OurAllCollection = database.collection('Product');
     const ReviCollection = database.collection('review')
+    const adminAddCollection = database.collection('AdminAddProdut')
 
 
     app.post('/addallProduct', async (req, res) => {
@@ -162,7 +163,29 @@ console.log('Hit the post api', name);
 })
 
 
-    
+// GET API
+app.get('/addAdmin', async(req, res)=>{
+  const cursor = adminAddCollection.find({});
+  const names = await cursor.toArray();
+  res.send(names)
+})
+
+// SINGLE GET API SERVICE
+app.get('/addAdmin/:id', async(req,res)=>{
+const id = req.params.id;
+const query = {_id:ObjectId(id)}
+const name = await adminAddCollection.findOne(query)
+res.json(name);
+})
+
+// POST API
+app.post('/addAdmin', async(req,res)=>{
+  const name = req.body;
+console.log('Hit the post api', name);
+  const result = await adminAddCollection.insertOne(name)
+  console.log(result)
+  res.json(result)
+})
 
 
   }
